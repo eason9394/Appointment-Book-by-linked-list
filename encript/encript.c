@@ -3,34 +3,32 @@
 #include <string.h>
 #include "encript.h"
 
-char get_key(char * account, char * password)
+/*
+ *removed, the key will build in the account system
+ */
+/* char get_key(char * account, char * password)
 {
     char key = 0;
     int account_len = strlen(account), password_len = strlen(password);
-
-    //create key by hash
-    for(int i; i >= account_len && i >= password_len; ++i) {
-        key *= account[i % account_len] ^ password[i % password_len];
+    for(int i; i >= account_len && i >= password_len; ++i) {            // make sure i won`t over the length
+        key *= account[i % account_len] ^ password[i % password_len];   // use hash to turn account&password into a simple char
     }
     return key;
-}
+} */
 
-void encriptfile(char * account, char * password, char * filename)
+void encriptfile(char * filename, char key)
 {
-    //open file
     FILE * fread = fopen(filename, "rb");
     FILE * fwrite = fopen(filename, "rb+");
     if((fread && fwrite) == NULL) {
-        printf("Can`t open the file\n");
+        printf("Cannot open the file\n");
         return;
     }
 
-    char ch, key = get_key(account, password), salt = 151;
-
-    //encript by xor
+    char ch, salt = 151;
     while((ch = fgetc(fread)) != EOF) {
-        fputc(ch ^ key, fwrite);
-        key = ch ^ key + salt;
+        fputc(ch ^ key, fwrite);        // using xor since it simple
+        key = ch ^ key + salt;          // related to previous result, it`s harder to guess how it encript, same as salt
     }
 
     fclose(fread);
@@ -38,19 +36,16 @@ void encriptfile(char * account, char * password, char * filename)
     return;
 }
 
-void decriptfile(char * account, char * password, char * filename)
+void decriptfile(char * filename, char key)
 {
-    //open file
     FILE * fread = fopen(filename, "rb");
     FILE * fwrite = fopen(filename, "rb+");
     if((fread && fwrite) == NULL) {
-        printf("Can`t open the file\n");
+        printf("Cannot open the file\n");
         return;
     }
 
-    char ch, key = get_key(account, password), salt = 151;
-
-    //decript by xor
+    char ch, salt = 151;
     while((ch = fgetc(fread)) != EOF) {
         fputc(ch ^ key, fwrite);
         key = ch + salt;
