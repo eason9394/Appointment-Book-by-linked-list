@@ -1,8 +1,5 @@
 /*****
-	Project 0 Version 4
-	
-	This prototype provides almost all functions except
-	for delete and modify.
+	Project update 2024/12/7
 *****/
 
 #include <stdio.h>
