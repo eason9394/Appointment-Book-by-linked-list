@@ -63,6 +63,7 @@ int main (void)
         snprintf(fileName, sizeof(fileName), "%s.txt", current_user);
         decriptfile(fileName);
         head=ReadFromFile (head, &count, current_user);
+        encriptfile(fileName);
 
         printf("%d records read from file\n", count);
 
@@ -90,7 +91,6 @@ int main (void)
                 default: printf("Please enter a choice 1-7 or 9 to quit\n");
             }
         }
-        encriptfile(fileName);
     }
 
 
@@ -207,16 +207,37 @@ Node *EnterRecord (Node *head, int * count)
     printf("\nEnterRecord -- to enter the who/what/when/where\n");
 
     printf("Please enter WHOM you have an appointment with: ");
-    scanf("%[^\n]%*c",temp->data.who);
+    scanf("%s",temp->data.who);
     fflush(stdin);
 
     printf("Please enter WHAT the event is: ");
     scanf("%[^\n]%*c",temp->data.what);
     fflush(stdin);
 
-    printf("Please enter WHEN (yymmddhhmm): ");
-    scanf("%s",temp->data.when);
-    fflush(stdin);
+    char date[WHEN_LEN];
+    while (1) { // 重複要求輸入直到輸入有效日期
+        printf("Please enter WHEN (yyyymmdd): ");
+        scanf("%s", date);
+
+        // 檢查日期是否有效
+        struct tm timeinfo = {0};
+        sscanf(date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+        timeinfo.tm_year -= 1900; // 修正年份
+        timeinfo.tm_mon -= 1;     // 修正月份 (1-12 -> 0-11)
+        fflush(stdin);
+
+        struct tm original = timeinfo; // 保存原始輸入的時間結構
+        if (mktime(&timeinfo) != -1 && 
+            timeinfo.tm_year == original.tm_year &&
+            timeinfo.tm_mon == original.tm_mon &&
+            timeinfo.tm_mday == original.tm_mday) {
+            // 日期有效，保存日期
+            strcpy(temp->data.when, date);
+            break;
+        } else {
+            printf("Invalid date! Please try again.\n");
+        }
+    }
 
     printf("Please enter WHERE you have an appointment at: ");
     scanf("%[^\n]%*c",temp->data.where);
@@ -239,28 +260,52 @@ Node *EnterRecord (Node *head, int * count)
 void ViewDay(Node *head)
 {
     char date[WHEN_LEN];
+    struct tm timeinfo = {0}; // 移到函數開始處，統一使用這個變數
 
     printf("\nViewDay -- to show the appointments of a given day\n");
-    printf("Please enter the day (yyyymmdd) to view: ");
-    scanf("%s", date);
 
-    // 解析輸入日期
-    struct tm timeinfo = {0};
-    sscanf(date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+    while (1) { // 重複要求輸入直到輸入有效日期
+        printf("Please enter the day (yyyymmdd) to view: ");
+        scanf("%s", date);
 
-    // 修正年份和月份格式
-    timeinfo.tm_year -= 1900; // tm_year 從 1900 年開始的偏移量
-    timeinfo.tm_mon -= 1;     // tm_mon 是 0-11 表示月份 (1-12月)
+        // 解析輸入日期
+        if (sscanf(date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday) != 3) {
+            printf("Invalid date format! Please try again.\n");
+            continue;
+        }
+
+        // 修正年份和月份格式
+        timeinfo.tm_year -= 1900; // tm_year 從 1900 年開始的偏移量
+        timeinfo.tm_mon -= 1;     // tm_mon 是 0-11 表示月份 (1-12月)
+
+        struct tm original = timeinfo; // 保存原始輸入的時間結構
+
+        // 使用 mktime 驗證日期
+        if (mktime(&timeinfo) != -1 &&
+            timeinfo.tm_year == original.tm_year &&
+            timeinfo.tm_mon == original.tm_mon &&
+            timeinfo.tm_mday == original.tm_mday) {
+            // 日期有效
+            break;
+        } else {
+            printf("Invalid date! Please try again.\n");
+        }
+    }
 
     // 格式化日期和星期幾
-    char day_of_week[7];
-    strftime(day_of_week, sizeof(day_of_week), "%A", &timeinfo);
+    char formatted_date[WHEN_LEN];
+    char day_of_week[10]; // 儲存星期幾的名稱
+
+    // 格式化日期 (yyyymmdd)
+    strftime(formatted_date, sizeof(formatted_date), "%Y%m%d", &timeinfo);
+    // 格式化星期幾
+    strftime(day_of_week, sizeof(day_of_week), "%A", &timeinfo); // 完整星期名稱
 
     // 顯示日期與星期幾
-    printf("Appointments on %s (%s):\n", date, day_of_week);
+    printf("%s (%s):\n", formatted_date, day_of_week);
 
     // 顯示該日期的約會
-    ShowDates(head, date);
+    ShowDates(head, formatted_date);
 
     return;
 }
@@ -288,23 +333,50 @@ void ShowDates(Node *head, char date[]) {
 
 void ViewWeek(Node *head, int count) {
     char date[WHEN_LEN];
-    printf("\nViewWeek -- to show the appointments of a given week\n");
-    printf("Please enter the day (yyyymmdd) to view: ");
-    scanf("%s", date);//yyyymmdd
-
-    // 解析輸入日期
     struct tm timeinfo = {0};
-    sscanf(date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+    int valid_date = 0;
 
-    //修正年份和月份格式
-    timeinfo.tm_year -= 1900; // tm_year from 1900~
-    timeinfo.tm_mon -= 1;     // tm_mon 是 0-11 表示月份 (1-12月)
+    printf("\nViewWeek -- to show the appointments of a given week\n");
 
+    while (!valid_date) {
+        printf("Please enter the day (yyyymmdd) to view: ");
+        scanf("%s", date); // yyyymmdd
+
+        // 解析輸入日期
+        if (sscanf(date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday) != 3) {
+            printf("Invalid date format! Please try again.\n");
+            continue;
+        }
+
+        // 修正年份和月份格式
+        timeinfo.tm_year -= 1900; // tm_year 從 1900 年開始的偏移量
+        timeinfo.tm_mon -= 1;     // tm_mon 是 0-11 表示月份 (1-12月)
+
+        // 使用 mktime 驗證日期
+        struct tm original_timeinfo = timeinfo; // 保存原始時間結構
+        if (mktime(&timeinfo) != -1 &&
+            timeinfo.tm_year == original_timeinfo.tm_year &&
+            timeinfo.tm_mon == original_timeinfo.tm_mon &&
+            timeinfo.tm_mday == original_timeinfo.tm_mday) {
+            valid_date = 1; // 日期有效
+        } else {
+            printf("Invalid date! Please try again.\n");
+        }
+    }
+
+    // 日期有效，開始顯示該周的約會
     for (int i = 0; i < 7; ++i) {
         // 格式化當前日期
         char formatted_date[WHEN_LEN];
-        //strftime(timeinfo->formatted_date)(yyyymmdd)
+        char day_of_week[10]; // 儲存星期幾的名稱
+
+        // 格式化日期 (yyyymmdd)
         strftime(formatted_date, sizeof(formatted_date), "%Y%m%d", &timeinfo);
+        // 格式化星期幾
+        strftime(day_of_week, sizeof(day_of_week), "%A", &timeinfo); // 完整星期名稱
+
+        // 顯示日期與星期幾
+        printf("%s (%s):\n", formatted_date, day_of_week);
 
         // 顯示該日期的約會
         ShowDates(head, formatted_date);
@@ -366,8 +438,8 @@ Node *Modify (Node *head, int count)
             scanf("%[^\n]%*c",current->data.when);//input until reach the \n
 
         }else if(demand==4){
-            printf("new_where:");
-            scanf("%[^\n]%*c",current->data.where);//input until reach the \n
+           printf("new_where:");
+           scanf("%[^\n]%*c",current->data.where);//input until reach the \n
 
         }else if(demand==5){
             printf("new_who:");
@@ -376,9 +448,29 @@ Node *Modify (Node *head, int count)
             printf("new_what:");
             scanf("%[^\n]%*c",current->data.what);//input until reach the \n
             fflush(stdin);
-            printf("new_when:");
-            scanf("%[^\n]%*c",current->data.when);//input until reach the \n
-            fflush(stdin);
+
+            char new_date[WHEN_LEN];
+            while (1) { // 日期檢測循環
+                printf("new_when:");
+                scanf("%[^\n]%*c", new_date); // input until reach the \n
+
+                struct tm timeinfo = {0};
+                sscanf(new_date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+                timeinfo.tm_year -= 1900;
+                timeinfo.tm_mon -= 1;
+
+                struct tm original = timeinfo;
+                if (mktime(&timeinfo) != -1 &&
+                    timeinfo.tm_year == original.tm_year &&
+                    timeinfo.tm_mon == original.tm_mon &&
+                    timeinfo.tm_mday == original.tm_mday) {
+                    strcpy(current->data.when, new_date);
+                    break;
+                } else {
+                    printf("Invalid date! Please try again.\n");
+                }
+            }
+
             printf("new_where:");
             scanf("%[^\n]%*c",current->data.where);//input until reach the \n
 
@@ -484,10 +576,12 @@ void Quit(Node *head, int count, char *username) {
     char stored_password[65] = {0};
     snprintf(password_file, sizeof(password_file), "%s.txt", username);
     
+    decriptfile(password_file);
     FILE *password_fp = fopen(password_file, "r");
     if (password_fp != NULL) {
         fgets(stored_password, sizeof(stored_password), password_fp);
         fclose(password_fp);
+        encriptfile(password_file);
     }
 
     // 2. 寫入新檔案
@@ -515,6 +609,7 @@ void Quit(Node *head, int count, char *username) {
     }
 
     fclose(fp);
+    encriptfile(password_file);
     printf("Records saved successfully.\n");
 
     // 5. 釋放記憶體
