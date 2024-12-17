@@ -57,7 +57,7 @@ int main (void)
     int quit = 0, choice, count=0;
     char fileName[100], current_user[WHO_LEN] = "";
 
-    int login_status = account_system(current_user);
+    int login_status = account_system(current_user, 0);
     
     if(login_status){
         snprintf(fileName, sizeof(fileName), "%s.txt", current_user);
@@ -67,28 +67,45 @@ int main (void)
 
         printf("%d records read from file\n", count);
 
-            while (! quit) {
+            while (!quit && login_status) {
             choice = menu();  // get a choice
             system("cls");
             switch (choice) { // process according to the choice
-                case 1: head=EnterRecord(head, &count);
-                        break;
-                case 2: ViewDay(head);
-                        break;
-                case 3: ViewWeek(head, count);
-                        break;
-                case 4: head=Modify(head, count);
-                        break;
-                case 5: head=Delete(head, &count);
-                        break;
-                case 6: printf("Search --- record at %d\n",Search(head, count));
-                        break;
-                case 7: account_system(current_user);
-                        break;
-                case 9: Quit(head, count, current_user);
-                        quit = 1;
-                        break;
-                default: printf("Please enter a choice 1-7 or 9 to quit\n");
+                case 1: 
+                    head=EnterRecord(head, &count);
+                    break;
+
+                case 2: 
+                    ViewDay(head);
+                    break;
+
+                case 3: 
+                    ViewWeek(head, count);
+                    break;
+                
+                case 4: 
+                    head=Modify(head, count);
+                    break;
+                
+                case 5: 
+                    head=Delete(head, &count);
+                    break;
+                
+                case 6: 
+                    printf("Search --- record at %d\n",Search(head, count));
+                    break;
+                
+                case 7: 
+                    login_status = account_system(current_user, login_status);
+                    break;
+                
+                case 9: 
+                    Quit(head, count, current_user);
+                    quit = 1;
+                    break;
+            
+                default: 
+                    printf("Please enter a choice 1-7 or 9 to quit\n");
             }
         }
     }
@@ -567,7 +584,7 @@ int Search (Node *head, int count)
         }
         current=current->next;
     }
-    return (i-1);//the target index7
+    return i;//the target index7
 }
 
 void Quit(Node *head, int count, char *username) {
