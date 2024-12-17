@@ -64,48 +64,57 @@ int main (void)
         decriptfile(fileName);
         head=ReadFromFile (head, &count, current_user);
         encriptfile(fileName);
-
         printf("%d records read from file\n", count);
 
             while (!quit && login_status) {
-            choice = menu();  // get a choice
-            system("cls");
-            switch (choice) { // process according to the choice
-                case 1: 
-                    head=EnterRecord(head, &count);
-                    break;
+                choice = menu();  // get a choice
+                system("cls");
+                switch (choice) { // process according to the choice
+                    case 1: 
+                        head=EnterRecord(head, &count);
+                        break;
 
-                case 2: 
-                    ViewDay(head);
-                    break;
+                    case 2: 
+                        ViewDay(head);
+                        break;
 
-                case 3: 
-                    ViewWeek(head, count);
-                    break;
+                    case 3: 
+                        ViewWeek(head, count);
+                        break;
+                    
+                    case 4: 
+                        head=Modify(head, count);
+                        break;
+                    
+                    case 5: 
+                        head=Delete(head, &count);
+                        break;
+                    
+                    case 6: 
+                        printf("Search --- record at %d\n",Search(head, count));
+                        break;
+                    
+                    case 7:
+                        Quit(head, count, current_user);
+                        head = NULL;
+                        count = 0;
+                        login_status = account_system(current_user, login_status);
+                        if(login_status) {
+                            snprintf(fileName, sizeof(fileName), "%s.txt", current_user);
+                            decriptfile(fileName);
+                            head=ReadFromFile (head, &count, current_user);
+                            encriptfile(fileName);
+                            printf("%d records read from file\n", count);
+                        }
+                        break;
+                    
+                    case 9: 
+                        Quit(head, count, current_user);
+                        quit = 1;
+                        break;
                 
-                case 4: 
-                    head=Modify(head, count);
-                    break;
-                
-                case 5: 
-                    head=Delete(head, &count);
-                    break;
-                
-                case 6: 
-                    printf("Search --- record at %d\n",Search(head, count));
-                    break;
-                
-                case 7: 
-                    login_status = account_system(current_user, login_status);
-                    break;
-                
-                case 9: 
-                    Quit(head, count, current_user);
-                    quit = 1;
-                    break;
-            
-                default: 
-                    printf("Please enter a choice 1-7 or 9 to quit\n");
+                    default: 
+                        printf("Please enter a choice 1-7 or 9 to quit\n");
             }
         }
     }
