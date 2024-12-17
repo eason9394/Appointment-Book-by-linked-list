@@ -84,9 +84,11 @@ void login(int *login_status, char *current_user) {
     if (fgets(buffer, sizeof(buffer), file) == NULL) {
         printf("Error reading user data.\n");
         fclose(file);
+        encriptfile(user_file);
         return;
     }
     fclose(file);
+    encriptfile(user_file);
 
     // 去除換行符並複製到account.hashed_password
     buffer[strcspn(buffer, "\n")] = '\0';
@@ -108,7 +110,7 @@ void login(int *login_status, char *current_user) {
         printf("stored %s\n", account.hashed_password);
         printf("Incorrect password.\n");
     }
-    encriptfile(user_file);
+    
 }
 
 
