@@ -207,11 +207,11 @@ Node *EnterRecord (Node *head, int * count)
     printf("\nEnterRecord -- to enter the who/what/when/where\n");
 
     printf("Please enter WHOM you have an appointment with: ");
-    scanf("%[^\n]%*c",temp->data.who);
+    scanf("%s",temp->data.who);
     fflush(stdin);
 
     printf("Please enter WHAT the event is: ");
-    scanf("%[^\n]%*c",temp->data.what);
+    scanf("%s",temp->data.what);
     fflush(stdin);
 
     char date[WHEN_LEN];
@@ -239,7 +239,7 @@ Node *EnterRecord (Node *head, int * count)
     }
 
     printf("Please enter WHERE you have an appointment at: ");
-    scanf("%[^\n]%*c",temp->data.where);
+    scanf("%s",temp->data.where);
     fflush(stdin);
 
     (*count) ++ ;
@@ -433,33 +433,8 @@ Node *Modify (Node *head, int count)
             scanf("%[^\n]%*c",current->data.when);//input until reach the \n
 
         }else if(demand==4){
-            char new_date[WHEN_LEN];
-            while (1) { // 重複要求輸入直到輸入有效日期
-                printf("new_when:");
-                scanf("%[^\n]%*c", new_date); // input until reach the \n
-
-                // 解析輸入日期
-                struct tm timeinfo = {0};
-                sscanf(new_date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
-
-                // 修正年份和月份格式
-                timeinfo.tm_year -= 1900; // tm_year 從 1900 年開始的偏移量
-                timeinfo.tm_mon -= 1;     // tm_mon 是 0-11 表示月份 (1-12月)
-
-                struct tm original = timeinfo; // 保存原始輸入的時間結構
-
-                // 使用 mktime 驗證日期
-                if (mktime(&timeinfo) != -1 &&
-                    timeinfo.tm_year == original.tm_year &&
-                    timeinfo.tm_mon == original.tm_mon &&
-                    timeinfo.tm_mday == original.tm_mday) {
-                    // 日期有效，保存日期
-                    strcpy(current->data.when, new_date);
-                    break;
-                } else {
-                    printf("Invalid date! Please try again.\n");
-                }
-            }
+           printf("new_where:");
+           scanf("%[^\n]%*c",current->data.where);//input until reach the \n
 
         }else if(demand==5){
             printf("new_who:");
