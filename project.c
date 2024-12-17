@@ -259,15 +259,19 @@ Node *EnterRecord (Node *head, int * count)
 void ViewDay(Node *head)
 {
     char date[WHEN_LEN];
+    struct tm timeinfo = {0}; // 移到函數開始處，統一使用這個變數
 
     printf("\nViewDay -- to show the appointments of a given day\n");
+
     while (1) { // 重複要求輸入直到輸入有效日期
         printf("Please enter the day (yyyymmdd) to view: ");
         scanf("%s", date);
 
         // 解析輸入日期
-        struct tm timeinfo = {0};
-        sscanf(date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+        if (sscanf(date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday) != 3) {
+            printf("Invalid date format! Please try again.\n");
+            continue;
+        }
 
         // 修正年份和月份格式
         timeinfo.tm_year -= 1900; // tm_year 從 1900 年開始的偏移量
@@ -288,23 +292,22 @@ void ViewDay(Node *head)
     }
 
     // 格式化日期和星期幾
-    struct tm timeinfo = {0};
-    sscanf(date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
-    timeinfo.tm_year -= 1900; // 修正年份
-    timeinfo.tm_mon -= 1;     // 修正月份
+    char formatted_date[WHEN_LEN];
+    char day_of_week[10]; // 儲存星期幾的名稱
 
-    char day_of_week[10];
-    strftime(day_of_week, sizeof(day_of_week), "%A", &timeinfo);
+    // 格式化日期 (yyyymmdd)
+    strftime(formatted_date, sizeof(formatted_date), "%Y%m%d", &timeinfo);
+    // 格式化星期幾
+    strftime(day_of_week, sizeof(day_of_week), "%A", &timeinfo); // 完整星期名稱
 
     // 顯示日期與星期幾
-    printf("Appointments on %s (%s):\n", date, day_of_week);
+    printf("%s (%s):\n", formatted_date, day_of_week);
 
     // 顯示該日期的約會
-    ShowDates(head, date);
+    ShowDates(head, formatted_date);
 
     return;
 }
-
 void ShowDates(Node *head, char date[]) {
     if (head == NULL) {
         printf("No appointments found.\n");
