@@ -184,8 +184,7 @@ void delete_account(const char *current_user, int *login_status) {
 
 
 // Main function
-int account_system(char *current_user) {
-    int login_status = 0;
+int account_system(char *current_user, int login_status) {
     int choice;
     do {
         //printf("\nAccount System Menu:\n");
@@ -243,7 +242,7 @@ void printMenu(int login_status)
         printf("\033[1;33m  1. Modify Password\n");
         printf("\033[1;33m  2. Delete Account\n");
         printf("\033[1;33m  3. Logout\n");
-        printf("\033[1;33m  4. Exit\n");
+        printf("\033[1;33m  4. Appointment Book system\n");
         printf("\033[1;34m=========================================\033[0m\n");
         return;
     }
