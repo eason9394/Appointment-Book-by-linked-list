@@ -460,13 +460,38 @@ Node *Modify (Node *head, int count)
             scanf("%[^\n]%*c",current->data.what);//input until reach the \n 
 
         }else if(demand==3){
-            printf("new_when:");
-            scanf("%[^\n]%*c",current->data.when);//input until reach the \n
+            char new_date[WHEN_LEN];
+            while (1) { // 重複要求輸入直到輸入有效日期
+                printf("new_when:");
+                scanf("%[^\n]%*c", new_date); // input until reach the \n
 
+                // 解析輸入日期
+                struct tm timeinfo = {0};
+                if(sscanf(new_date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday) != 3) {
+                    printf("Invalid date format! Please try again.\n");
+                    continue;
+                }
+                // 修正年份和月份格式
+                timeinfo.tm_year -= 1900; // tm_year 從 1900 年開始的偏移量
+                timeinfo.tm_mon -= 1;     // tm_mon 是 0-11 表示月份 (1-12月)
+
+                struct tm original = timeinfo; // 保存原始輸入的時間結構
+
+                // 使用 mktime 驗證日期
+                if (mktime(&timeinfo) != -1 &&
+                    timeinfo.tm_year == original.tm_year &&
+                    timeinfo.tm_mon == original.tm_mon &&
+                    timeinfo.tm_mday == original.tm_mday) {
+                    // 日期有效，保存日期
+                    strcpy(current->data.when, new_date);
+                    break;
+                } else {
+                    printf("Invalid date! Please try again.\n");
+                }
+            }
         }else if(demand==4){
-           printf("new_where:");
-           scanf("%[^\n]%*c",current->data.where);//input until reach the \n
-
+            printf("new_where:");
+            scanf("%[^\n]%*c",current->data.where);//input until reach the \n
         }else if(demand==5){
             printf("new_who:");
             scanf("%[^\n]%*c",current->data.who);//input until reach the \n
@@ -474,14 +499,17 @@ Node *Modify (Node *head, int count)
             printf("new_what:");
             scanf("%[^\n]%*c",current->data.what);//input until reach the \n
             fflush(stdin);
-
             char new_date[WHEN_LEN];
             while (1) { // 日期檢測循環
                 printf("new_when:");
                 scanf("%[^\n]%*c", new_date); // input until reach the \n
 
                 struct tm timeinfo = {0};
-                sscanf(new_date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+                // 解析輸入日期
+            if (sscanf(new_date, "%4d%2d%2d", &timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday) != 3) {
+                printf("Invalid date format! Please try again.\n");
+                continue;
+            }
                 timeinfo.tm_year -= 1900;
                 timeinfo.tm_mon -= 1;
 
